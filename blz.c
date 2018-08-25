@@ -222,13 +222,14 @@ char * blz_decompress(unsigned char * compressed, u32 * isize) {
 	u32 compressed_size;
 	u32 init_index;
 	u32 uncompressed_addl_size;
+	u32 f_factor = 0x1000;
 	
 	memcpy(&compressed_size, compressed+size - 0xC, 4);
 	memcpy(&init_index, compressed+size - 0x8, 4);
 	memcpy(&uncompressed_addl_size, compressed+size - 0x4, 4);
 	
 	u32 decompressed_size = compressed_size + uncompressed_addl_size;
-	unsigned char * decomp = malloc(decompressed_size);
+	unsigned char * decomp = malloc(decompressed_size+f_factor);
 	memcpy(decomp, compressed, size);
 	for(int i=size; i<decompressed_size; i++)
 		decomp[i]=0x0;
@@ -372,25 +373,17 @@ char * kip_decomp(char * bytes, int * sz) {
 	memcpy(out+sizeof(kiphdr), text, text_h->filesize);
 	memcpy(out+sizeof(kiphdr)+text_h->filesize, ro, ro_h->filesize);
 	memcpy(out+sizeof(kiphdr)+text_h->filesize+ro_h->filesize,data, data_h->filesize); 
-
-	/*u32 decompsize  = text_h.filesize;
-	char * text_c = blz_compress(text, &text_h.filesize);
-	char * ro_c = blz_compress(ro, &ro_h.filesize);
-	char * data_c = blz_compress(data, &data_h.filesize);
 	
-	u32 totalcompsize = text_h.filesize+ro_h.filesize+data_h.filesize;
-	char * outc = malloc(totalcompsize+1);
-	
-	memcpy(outc, text_c, text_h.filesize);
-	memcpy(outc+text_h.filesize, ro_c, ro_h.filesize);
-	memcpy(outc+text_h.filesize+ro_h.filesize,data_c, data_h.filesize); */
+	free(text);
+	free(ro);
+	free(data);
 	
 	*sz = totalsize;
 	return out;
 }
 int test1() {
 	FILE *fp;
-	fp = fopen("FSnew100.kip1", "rb");
+	fp = fopen("sss.kip1", "rb");
 	if(fp==NULL)
 		return -1;
 	fseek(fp, 0, SEEK_END);
@@ -418,7 +411,7 @@ static u32 calcKipSize(pkg2_kip1_t *kip1) {
 
 int main() {
 	FILE *fp;
-	fp = fopen("FS510.kip1", "rb");
+	fp = fopen("FS410.kip1", "rb");
 	if(fp==NULL)
 		return -1;
 	fseek(fp, 0, SEEK_END);
@@ -434,9 +427,11 @@ int main() {
 	//u32 lol = calcKipSize(kip1);
 	//printf("%x, %x \n", lol, size);
 	char * out= kip_decomp(bytes, &size);
-	fp = fopen("FSnew510.kip1", "wb");
+	fp = fopen("FS410_decomp.kip1", "wb");
 	fwrite(out, 1, size, fp);
 	fclose(fp);
+	free(out);
+	free(bytes);
 	//test1();
 	return 0;
 }
